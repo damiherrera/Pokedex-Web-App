@@ -17,7 +17,9 @@
 <header>
     <div class="container-fluid d-flex justify-content-between" style="background-color:#cc0000">
         <img src="./images/Poké_Ball_icon.svg" alt="Pokeball-logo" height="128px" width="128px">
-        <h1 class="mb-4 text-center  h1 display-1 align-self-center" style="font-family: 'Eviolite B', sans-serif; color: #ffde00;  -webkit-text-stroke: 2px #3b4cca;">POKEDEX</h1>
+        <h1 class="mb-4 text-center  h1 display-1 align-self-center"
+            style="font-family: 'Eviolite B', sans-serif; color: #ffde00;  -webkit-text-stroke: 2px #3b4cca;">
+            POKEDEX</h1>
         <form action="#" method="post" class="align-self-center">
             <div class="row">
                 <div class="col">
@@ -27,7 +29,8 @@
                     <input type="password" class="form-control" placeholder="Password" name="pswd">
                 </div>
                 <div class="col">
-                    <button type="submit" class="btn" style="background-color: #ffde00; font-weight: bold">Ingresar</button>
+                    <button type="submit" class="btn" style="background-color: #ffde00; font-weight: bold">Ingresar
+                    </button>
                 </div>
             </div>
         </form>
@@ -35,10 +38,30 @@
 </header>
 <main>
 
-    <form action="" method="POST">
-        <div class="input-group mb-3 container pt-5 ">
-            <input type="text"  name="busqueda" class="form-control " placeholder="Ingrese el nombre, tipo o número de pokémon...">
-            <button class="btn" type="submit" class="btn" style="background-color: #ffde00; font-weight: bold">Quien es ese pokémon?</button>
+    <form action="" method="GET" class="container pt-5">
+        <div class="mb-2 d-flex justify-content-flex-start gap-3">
+            Buscar por:
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="opcion-de-busqueda" id="inlineRadio1" value="id"
+                       checked>
+                <label class="form-check-label" for="inlineRadio1">Numero</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="opcion-de-busqueda" id="inlineRadio2" value="nombre">
+                <label class="form-check-label" for="inlineRadio2">Nombre</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="opcion-de-busqueda" id="inlineRadio3" value="tipo">
+                <label class="form-check-label" for="inlineRadio3">Tipo</label>
+            </div>
+        </div>
+
+        <!-- Barra de búsqueda -->
+        <div class="input-group mb-3">
+            <input type="text" name="busqueda" class="form-control" placeholder="Ingrese los datos a buscar...">
+            <button class="btn" type="submit" style="background-color: #ffde00; font-weight: bold">
+                ¿Quién es ese Pokémon?
+            </button>
         </div>
     </form>
 
@@ -61,94 +84,42 @@
                 </tr>
                 </thead>
                 <tbody>
-                <img src="./images/sprites_3d/" alt="">
                 <?php
-                $conexion = mysqli_connect("localhost", "root", "", "pokedex");
+                require_once "./clases/MyDataBase.php";
+                require_once "./clases/PokemonQueries.php";
+
+                $queries = new PokemonQueries();
+                $resultado = [];
 
 
-                $busqueda = isset($_POST['busqueda']) ? $_POST['busqueda'] : '';
+                if ($_SERVER["REQUEST_METHOD"] == "GET") {
+                    $busqueda = $_GET['busqueda'] ?? '';
+                    $opcion = $_GET['opcion-de-busqueda'] ?? '';
 
-                if($busqueda == ""){
-                    $sql = "SELECT p.dex_entry, p.nombre, t1.descripcion as tipo1, t2.descripcion as tipo2, p.hp, p.ataque, p.defensa, p.ataque_esp, p.defensa_esp, p.velocidad
-                    FROM pokemon p 
-                    JOIN pokemon_tipos pt on p.dex_entry = pt.pokemon_id
-                    JOIN tipos t1 ON pt.tipo1_id = t1.id
-                    LEFT JOIN tipos t2 ON pt.tipo2_id = t2.id
-                    ORDER BY p.dex_entry;
-                    ";
-                    $resultado = mysqli_query($conexion, $sql);
-                    $datos = mysqli_fetch_all($resultado, MYSQLI_ASSOC);
-
-                } else if ($busqueda != "") {
-                    if (is_numeric($busqueda)) {
-                        $sql = "SELECT p.dex_entry, p.nombre, t1.descripcion as tipo1, t2.descripcion as tipo2, p.hp, p.ataque, p.defensa, p.ataque_esp, p.defensa_esp, p.velocidad
-                                FROM pokemon p 
-                                JOIN pokemon_tipos pt on p.dex_entry = pt.pokemon_id
-                                JOIN tipos t1 ON pt.tipo1_id = t1.id
-                                LEFT JOIN tipos t2 ON pt.tipo2_id = t2.id
-                                WHERE p.dex_entry = ?
-                                ORDER BY p.dex_entry";
-                        $stmt = $conexion->prepare($sql);
-                        $stmt->bind_param("i", $busqueda);
-                        $stmt->execute();// "i" para integer
-                        $resultado = $stmt->get_result();
-                        $datos = mysqli_fetch_all($resultado, MYSQLI_ASSOC);
+                    if (trim($busqueda) === "") {
+                        $resultado = $queries->obtenerListadoDePokemons();
                     } else {
-                        $sql = "SELECT p.dex_entry, p.nombre, t1.descripcion as tipo1, t2.descripcion as tipo2, p.hp, p.ataque, p.defensa, p.ataque_esp, p.defensa_esp, p.velocidad
-                                FROM pokemon p 
-                                JOIN pokemon_tipos pt on p.dex_entry = pt.pokemon_id
-                                JOIN tipos t1 ON pt.tipo1_id = t1.id
-                                LEFT JOIN tipos t2 ON pt.tipo2_id = t2.id
-                                WHERE LOWER(nombre) = ?
-                                ORDER BY p.dex_entry";
-                        $stmt = $conexion->prepare($sql);
-                        $stmt->bind_param("s", $busqueda);
-                        $stmt->execute();
-                        $resultado = $stmt->get_result();
-                        $datos = mysqli_fetch_all($resultado, MYSQLI_ASSOC);
-
-
-                        if (count($datos) === 0) {
-                            $like = "%" . $busqueda . "%";
-                            $sql = "SELECT p.dex_entry, p.nombre, t1.descripcion as tipo1, t2.descripcion as tipo2, p.hp, p.ataque, p.defensa, p.ataque_esp, p.defensa_esp, p.velocidad
-                                FROM pokemon p 
-                                JOIN pokemon_tipos pt on p.dex_entry = pt.pokemon_id
-                                JOIN tipos t1 ON pt.tipo1_id = t1.id
-                                LEFT JOIN tipos t2 ON pt.tipo2_id = t2.id 
-                                WHERE LOWER(nombre) LIKE ? OR LOWER(t1.descripcion) LIKE ? OR LOWER(t2.descripcion) LIKE ?
-                                ORDER BY p.dex_entry";
-                            $stmt = $conexion->prepare($sql);
-                            $stmt->bind_param("sss", $like, $like, $like);
-                            $stmt->execute();
-                            $resultado = $stmt->get_result();
-                            $datos = mysqli_fetch_all($resultado, MYSQLI_ASSOC);
-
+                        switch ($opcion) {
+                            case 'id':
+                                $resultado = $queries->obtenerPokemonPorNumero($busqueda);
+                                break;
+                            case 'nombre':
+                                $resultado = $queries->obtenerPokemonPorNombre($busqueda);
+                                break;
+                            case 'tipo':
+                                $resultado = $queries->obtenerPokemonPorTipo($busqueda);
+                                break;
+                            default:
+                                $resultado = [];
+                                break;
                         }
-
-
                     }
 
-
-
-
+                } else {
+                    $resultado = $queries->obtenerListadoDePokemons();
                 }
 
-                if (count($datos) === 0) {
-
-
-                    echo "<tr><td colspan='10' class='text-center'>No se encontró ningún Pokémon con ese criterio.</td></tr>";
-                    $sql = "SELECT p.dex_entry, p.nombre, t1.descripcion as tipo1, t2.descripcion as tipo2, p.hp, p.ataque, p.defensa, p.ataque_esp, p.defensa_esp, p.velocidad
-                    FROM pokemon p 
-                    JOIN pokemon_tipos pt on p.dex_entry = pt.pokemon_id
-                    JOIN tipos t1 ON pt.tipo1_id = t1.id
-                    LEFT JOIN tipos t2 ON pt.tipo2_id = t2.id
-                    ORDER BY p.dex_entry";
-                    $resultado = mysqli_query($conexion, $sql);
-                    $datos = mysqli_fetch_all($resultado, MYSQLI_ASSOC);
-
-                }
-
-                foreach ($datos as $dato) {
+                foreach ($resultado as $dato) {
                     echo "<tr onclick=\"window.location='./pokemon_detalle.php?dex_entry=" . $dato['dex_entry'] . "'\" style=\"cursor:pointer;\">";
 
                     echo "<td class='text-center align-middle'>" . $dato["dex_entry"] . "</td>";
@@ -169,7 +140,7 @@
                 }
 
 
-                mysqli_close($conexion);
+
                 ?>
 
                 </tbody>

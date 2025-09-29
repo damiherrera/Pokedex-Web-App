@@ -1,16 +1,17 @@
 <?php
-require_once "./db_querys.php";
-require_once "./TypeEffectiveness.php";
+require_once "./clases/PokemonQueries.php";
+require_once "./clases/TypeEffectiveness.php";
 
-$conexion = conectarABaseDeDatos();
+$queries = new PokemonQueries();
+$tablaDeTipos = new TypeEffectiveness();
 
 $dex_entry = $_GET['dex_entry'];
-$pokemon = mostrarDatosPokemon($dex_entry);
-$evoluciones = mostrarEvoluciones($dex_entry);
+$pokemon = $queries->mostrarDetallePokemon($dex_entry); ;
+$evoluciones = $queries->mostrarEvoluciones($dex_entry);
 $nro_dex = str_pad($pokemon['dex_entry'], 4, "0", STR_PAD_LEFT);
 $imagen = glob("./images/pokemon_artwork/{$nro_dex} *.png");
 $ruta_imagen = $imagen ? $imagen[0] : "./images/default.png";
-$tablaDeTipos = new TypeEffectiveness();
+
 $ventajasYDebilidades = $tablaDeTipos->debilidadesYVentajas([$pokemon['tipo1'], $pokemon['tipo2']]);
 
 
@@ -224,10 +225,11 @@ function getStatGradient($valor)
                         $cadena = $evoluciones[0];
 
 
+
                         if (!empty($cadena['etapa1']) && empty($cadena['etapa2']) && empty($cadena['etapa3'])) {
                             echo "<div class='evolucion'>";
                             echo "<div class='pokemon text-center'>";
-                            echo "<a href='./pokemon_detalle.php?dex_entry=" . buscarDetallePorNombre($cadena['etapa1']) . "'>";
+                            echo "<a href='./pokemon_detalle.php?dex_entry=" . $queries->buscarDetallePorNombre($cadena['etapa1']) . "'>";
                             echo "<img src='./images/sprites_3d/" . $cadena['etapa1'] . ".gif' alt='" . $cadena['etapa1'] . "' class='sprite mb-3' style='cursor:pointer;'>";
                             echo "</a>";
                             echo "<p class='text-dark no-evoluciona mt-3'>" . $cadena['etapa1'] . " no evoluciona ni es la evolución de ningún Pokémon.</p>";
@@ -238,7 +240,7 @@ function getStatGradient($valor)
                             foreach ($evoluciones as $rama) {
                                 echo "<div class='evolucion text-center evolucion-item'>";
                                 // Etapa 1
-                                echo "<a href='./pokemon_detalle.php?dex_entry=" . buscarDetallePorNombre($rama['etapa1']) . "'>";
+                                echo "<a href='./pokemon_detalle.php?dex_entry=" . $queries->buscarDetallePorNombre($rama['etapa1']) . "'>";
                                 echo "<img src='./images/sprites_3d/" . $rama['etapa1'] . ".gif' alt='" . $rama['etapa1'] . "' class='sprite mb-3' style='cursor:pointer;'>";
                                 echo "<p style='color: blue; font-size: 12px'>" . $rama['etapa1'] . "</p>";
                                 echo "</a>";
@@ -249,7 +251,7 @@ function getStatGradient($valor)
                                 echo "</div>";
 
                                 // Etapa 2
-                                echo "<a href='./pokemon_detalle.php?dex_entry=" . buscarDetallePorNombre($rama['etapa2']) . "'>";
+                                echo "<a href='./pokemon_detalle.php?dex_entry=" . $queries->buscarDetallePorNombre($rama['etapa2']) . "'>";
                                 echo "<img src='./images/sprites_3d/" . $rama['etapa2'] . ".gif' alt='" . $rama['etapa2'] . "' class='sprite mb-3' style='cursor:pointer;'>";
                                 echo "<p style='color: blue; font-size: 12px'>" . $rama['etapa2'] . "</p>";
                                 echo "</a>";
@@ -259,7 +261,7 @@ function getStatGradient($valor)
                             // Caso: cadena lineal (1 → 2 → 3)
                             echo "<div class='evolucion text-center'>";
                             // Etapa 1
-                            echo "<a href='./pokemon_detalle.php?dex_entry=" . buscarDetallePorNombre($cadena['etapa1']) . "'>";
+                            echo "<a href='./pokemon_detalle.php?dex_entry=" . $queries->buscarDetallePorNombre($cadena['etapa1']) . "'>";
                             echo "<img src='./images/sprites_3d/" . $cadena['etapa1'] . ".gif' alt='" . $cadena['etapa1'] . "' class='sprite mb-3' style='cursor:pointer;'>";
                             echo "<p style='color: blue; font-size: 12px'>" . $cadena['etapa1'] . "</p>";
                             echo "</a>";
@@ -271,7 +273,7 @@ function getStatGradient($valor)
                                 echo "<span class='metodo'>" . $cadena['metodo1'] . "</span>";
                                 echo "</div>";
 
-                                echo "<a href='./pokemon_detalle.php?dex_entry=" . buscarDetallePorNombre($cadena['etapa2']) . "'>";
+                                echo "<a href='./pokemon_detalle.php?dex_entry=" . $queries->buscarDetallePorNombre($cadena['etapa2']) . "'>";
                                 echo "<img src='./images/sprites_3d/" . $cadena['etapa2'] . ".gif' alt='" . $cadena['etapa2'] . "' class='sprite mb-3' style='cursor:pointer;'>";
                                 echo "<p class='mt-3' style='color: blue; font-size: 12px'>" . $cadena['etapa2'] . "</p>";
                                 echo "</a>";
@@ -284,7 +286,7 @@ function getStatGradient($valor)
                                 echo "<span class='metodo'>" . $cadena['metodo2'] . "</span>";
                                 echo "</div>";
 
-                                echo "<a href='./pokemon_detalle.php?dex_entry=" . buscarDetallePorNombre($cadena['etapa3']) . "'>";
+                                echo "<a href='./pokemon_detalle.php?dex_entry=" . $queries->buscarDetallePorNombre($cadena['etapa3']) . "'>";
                                 echo "<img src='./images/sprites_3d/" . $cadena['etapa3'] . ".gif' alt='" . $cadena['etapa3'] . "' class='sprite mb-3' style='cursor:pointer;'>";
                                 echo "<p class='mt-3' style='color: blue; font-size: 12px'>" . $cadena['etapa3'] . "</p>";
                                 echo "</a>";
